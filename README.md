@@ -19,3 +19,4 @@ path |	日志存放的地址。默认为当前目录
 ```
 python reboot_ding.py
 ```
+> Note: 可以使用supervisor来进行托管启动
