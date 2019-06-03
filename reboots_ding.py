@@ -40,12 +40,11 @@ logger.addHandler(handler)
 ding_queue = Queue.Queue()
 msg_queue = Queue.Queue()
 
-# 钉钉发送函数
+
 def dingding(tokenid, message):
 	ding_url = "https://oapi.dingtalk.com/robot/send?access_token=" + tokenid
 	subject = ''
 	content = ''
-	mobiles = message['phone']
 	if message["status"] != "OK":
 		subject = '告警'
 		content = '告警主机: %s\n告警等级: %s\n告警信息: %s\n告警时间: %s\n' % (
@@ -65,23 +64,26 @@ def dingding(tokenid, message):
             },
             "at": {
                 "atMobiles": [
-                    mobiles
+                    "18227589445"
                 ],
                 "isAtAll": "false"
             }
  	}
- 	sendData = json.dumps(data)
- 	request = urllib2.Request(ding_url, data=sendData, headers=header)
- 	urlopen = urllib2.urlopen(request)
-        return urlopen.read()
+        try:
+ 	    sendData = json.dumps(data)
+ 	    request = urllib2.Request(ding_url, data=sendData, headers=header)
+ 	    urlopen = urllib2.urlopen(request)
+            return urlopen.read()
+        except Exception,e:
+            logger.error(e)
 
-# 使用正则获取有用数据，返回字典
 def set_message(msg):
 	people = ''
 	content = ''
 	try:
 	    body = msg.split('\r\n\r\n', 1)[1]
 	    body = urllib.unquote(body)
+            logger.info("获取消息成功: %s" % body)
 	    for i in body.split('&', 1):
 	    	if re.match('tos', i):
 	    		people = i
@@ -92,11 +94,10 @@ def set_message(msg):
 	    	r'\[(.*)\]\[(.*)\]\[(.*)\]\[(.*)\]\[(.*)\]\[(.*)\]', content.split('=', 1)[1], re.M | re.I)
 	    message = {'level': searchObj.group(1), 'status': searchObj.group(2), 'host': searchObj.group(
 	    	3), 'tag': searchObj.group(4), 'info': searchObj.group(5), 'time': searchObj.group(6)}
-	    message['phone'] = str(content)
             return message
         except Exception,e:
                 logger.error(e)
-# 监听msg_queue 队列是否有值，如果有，调用正则函数提前有用信息
+
 def thread_msg(thread_id):
  	while True:
  		if not msg_queue.empty():
@@ -108,19 +109,22 @@ def thread_msg(thread_id):
                         logger.debug('msg_queue is empty ,wait ....')
  			time.sleep(10)
 
-# 监听ding_queue队列是否有值，如果有值，调用发送函数进行钉钉发送
 def thread_ding(arg):
  	to_id = arg
  	while True:
  		if not ding_queue.empty():
  			msg = ding_queue.get()
- 			d_res = dingding(to_id, msg)
- 			logger.info('钉钉发送成功： %s' %d_res)
+                        logger.info('开始发送消息: %s' %msg)
+                        if msg:
+ 			    d_res = dingding(to_id, msg)
+ 			    logger.info('钉钉发送成功： %s' %d_res)
+                        else:
+                            logger.warning("获取消息失败 %s" % msg)
+                            continue 
  		else:
                         logger.debug('ding_queue is empty,wait ....')
  			time.sleep(10)
 
-# 初始化，绑定端口，地址，进行监听
 def init(host=None,port=None):
 	s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 	if host == None:
@@ -131,7 +135,6 @@ def init(host=None,port=None):
 	s.listen(5)
 	return s
 
-# 接收连接，获取数据
 def get_msg(conn):
 	msg = ''
 	try:
@@ -144,7 +147,7 @@ def get_msg(conn):
 	   logger.error(e)
 
 if __name__ == '__main__':
-    # 获取配置文件的端口和地址
+    #tokenid='651799ff4d098ae5ae60d85ea9fc5e345604a26038aba75470ba6593012d1ffa'
     if config.has_section('default') and config.has_option('default','host'):
         host = config.get('default','host')
     else:
@@ -158,7 +161,6 @@ if __name__ == '__main__':
     else:
         logger.error('tokenid is empty')
     logger.info('start...')
-    # 开启进程进行处理字段
     for x in range(0,5):
     	t = threading.Thread(target=thread_msg,args=(x,))
     	t.start()
