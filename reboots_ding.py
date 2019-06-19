@@ -64,7 +64,7 @@ def dingding(tokenid, message):
             },
             "at": {
                 "atMobiles": [
-                    "18227589445"
+                    ""
                 ],
                 "isAtAll": "false"
             }
