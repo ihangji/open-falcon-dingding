@@ -68,7 +68,11 @@ def dingding(tokenid, message):
             },
             "at": {
                 "atMobiles": [
+<<<<<<< HEAD
                     tos
+=======
+                    ""
+>>>>>>> 5a8baa5fb6ca494ab6f66619ba6df354307a423a
                 ],
                 "isAtAll": "false"
             }
