@@ -9,7 +9,7 @@ open-falcon 告警信息发送钉钉告警群
 ---|---
 port  |	为open-falcon alarm配置上监听的端口
 host  |	监听主机地址
-tokenid |	钉钉机器人的tokenin
+tokenid |	钉钉机器人的tokenid
 path |	日志存放的地址。默认为当前目录
 
 * 在open-falcon 页面上，去吧要发送告警信息@的人的手机号写上。根据第一点，添在对应的位置。然后修改告警等级，改为3以下。
