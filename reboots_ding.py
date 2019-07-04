@@ -53,6 +53,10 @@ def dingding(tokenid, message):
 		subject = "恢复"
 		content = '恢复主机: %s\n恢复等级: %s\n恢复信息: %s\n恢复时间: %s\n' % (
 			message['host'], message["level"], message["info"], message["time"])
+        if message["tos"]:
+                tos = message["tos"]
+        else:
+                tos = ""
  	header = {
             "Content-Type": "application/json",
             "charset": "utf-8"
@@ -64,7 +68,7 @@ def dingding(tokenid, message):
             },
             "at": {
                 "atMobiles": [
-                    "18227589445"
+                    tos
                 ],
                 "isAtAll": "false"
             }
@@ -93,7 +97,7 @@ def set_message(msg):
 	    searchObj = re.search(
 	    	r'\[(.*)\]\[(.*)\]\[(.*)\]\[(.*)\]\[(.*)\]\[(.*)\]', content.split('=', 1)[1], re.M | re.I)
 	    message = {'level': searchObj.group(1), 'status': searchObj.group(2), 'host': searchObj.group(
-	    	3), 'tag': searchObj.group(4), 'info': searchObj.group(5), 'time': searchObj.group(6)}
+	    	3), 'tag': searchObj.group(4), 'info': searchObj.group(5), 'time': searchObj.group(6),'tos':people}
             return message
         except Exception,e:
                 logger.error(e)
@@ -102,9 +106,12 @@ def thread_msg(thread_id):
  	while True:
  		if not msg_queue.empty():
  			msg = msg_queue.get()
- 			m = set_message(msg)
-                        logger.info('解析消息成功: %s' %m)
- 			ding_queue.put(m)
+                        if msg:
+ 			    m = set_message(msg)
+                            logger.info('解析消息成功: %s' %m)
+ 			    ding_queue.put(m)
+                        else:
+                            logger.warning('消息队列为空: %s'%s)
  		else :
                         logger.debug('msg_queue is empty ,wait ....')
  			time.sleep(10)
@@ -120,7 +127,6 @@ def thread_ding(arg):
  			    logger.info('钉钉发送成功： %s' %d_res)
                         else:
                             logger.warning("获取消息失败 %s" % msg)
-                            continue 
  		else:
                         logger.debug('ding_queue is empty,wait ....')
  			time.sleep(10)
@@ -147,7 +153,6 @@ def get_msg(conn):
 	   logger.error(e)
 
 if __name__ == '__main__':
-    #tokenid='651799ff4d098ae5ae60d85ea9fc5e345604a26038aba75470ba6593012d1ffa'
     if config.has_section('default') and config.has_option('default','host'):
         host = config.get('default','host')
     else:
@@ -172,5 +177,3 @@ if __name__ == '__main__':
         conn,addr = ok.accept()
         t = threading.Thread(target=get_msg,args=(conn,))
         t.start()
-
-
