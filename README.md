@@ -2,8 +2,9 @@ open-falcon 告警信息发送钉钉告警群
 ===
 新入职公司目前使用的open-falcon监控，但是open-falcon监控支持短信，企业微信，邮件告警，对于现状，目前就只有邮件告警。其他前面两种都没有考虑。但邮件不是很及时。所以想将告警信息接入钉钉机器人。
 ## 配置
-* 到open-falcon的alarm的/config/cgf.json配置post发送的端口。配置在im,sm上面都可以，使用一个没有用到的。
+* 到open-falcon的alarm的/config/cgf.json配置post发送的端口。配置在im,sm上面都可以，使用一个没有用到的推送端口，该端口要与reboot_ding中的配置文件监听的端口一致。
 * 修改该程序的config配置
+* open-falcon中告警联系人的手机号如果填上了，那么rebot_ding会自动@此人
 
 配置  |	说明
 ---|---
